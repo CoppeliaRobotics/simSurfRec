@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="callbacks.xsl"?>
+
+<plugin name="SurfaceReconstruction" author="federico.ferri.it@gmail.com">
+    <description>API functions for surface reconstruction from point clouds</description>
+    <command name="reconstruct">
+        <description></description>
+        <params>
+            <param name="pointCloudHandle" type="int">
+                <description>handle of the point cloud</description>
+            </param>
+        </params>
+        <return>
+            <param name="meshHandle" type="int">
+                <description>handle of the reconstructed mesh</description>
+            </param>
+            <param name="neighborhoodSquaredRadius" type="float">
+                <description>neighborhood squared radius</description>
+            </param>
+        </return>
+    </command>
+</plugin>
