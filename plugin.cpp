@@ -107,7 +107,7 @@ void reconstruct(SScriptCallBack *p, const char *cmd, reconstruct_in *in, recons
             idxArray[idxCnt++] = triple.at(2);
         }
     }
-#if (1 || DEBUG_OUTPUT_RECONSTRUCTED_PLY)
+#if DEBUG_OUTPUT_RECONSTRUCTED_PLY
     std::ofstream f;
     f.open("reconstructed.ply");
     f << "ply\nformat ascii 1.0\nelement vertex " << ptCnt << "\nproperty float x\nproperty float y\nproperty float z\nelement face " << triCount << "\nproperty list uchar int vertex_index\nend_header\n";
@@ -116,9 +116,8 @@ void reconstruct(SScriptCallBack *p, const char *cmd, reconstruct_in *in, recons
     for(int i = 0; i < triCount; i++)
         f << "3 " << idxArray[3 * i] << " " << idxArray[3 * i + 1] << " " << idxArray[3 * i + 2] << std::endl;
     f.close();
-    std::cout << "reconstructed mesh written to reconstructed.ply" << std::endl;
 #endif
-    out->meshHandle = simCreateMeshShape(0, 1.2, ptArray, ptCnt, idxArray, idxCnt, 0);
+    out->meshHandle = simCreateMeshShape(0, 1.2, ptArray, 3 * ptCnt, idxArray, idxCnt, 0);
     if(out->meshHandle == -1)
         throw string("call to simCreateMeshShape failed");
 
