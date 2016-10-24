@@ -89,37 +89,49 @@ void reconstruct(SScriptCallBack *p, const char *cmd, reconstruct_in *in, recons
     const float *ptArray = simGetPointCloudPoints(in->pointCloudHandle, &ptCnt, 0);
     if(!ptArray)
         throw string("call to simGetPointCloudPoints failed");
-    Point_collection points;
-    for(int i = 0; i < ptCnt * 3; i += 3)
-        points.push_back(Point(ptArray[i], ptArray[i+1], ptArray[i+2]));
-    Reconstruction reconstruct(10, 200);
-    reconstruct.reconstruct_surface(points.begin(), points.end(), 4);
-    out->neighborhoodSquaredRadius = reconstruct.neighborhood_squared_radius();
-    int triCount = reconstruct.number_of_triangles();
-    simInt *idxArray = new simInt[triCount*3];
-    int idxCnt = 0;
-    for(std::size_t shell = 0; shell < reconstruct.number_of_shells(); ++shell) {
-        for(Triple_iterator it = reconstruct.shell_begin(shell); it != reconstruct.shell_end(shell); ++it)
+    Algorithm algorithm = (Algorithm)in->algorithm;
+    switch(algorithm)
+    {
+    case sim_surfacereconstruction_algorithm_scalespace:
         {
-            const Triple &triple = *it;
-            idxArray[idxCnt++] = triple.at(0);
-            idxArray[idxCnt++] = triple.at(1);
-            idxArray[idxCnt++] = triple.at(2);
-        }
-    }
+            Point_collection points;
+            for(int i = 0; i < ptCnt * 3; i += 3)
+                points.push_back(Point(ptArray[i], ptArray[i+1], ptArray[i+2]));
+            Reconstruction reconstruct(10, 200);
+            reconstruct.reconstruct_surface(points.begin(), points.end(), 4);
+            out->neighborhoodSquaredRadius = reconstruct.neighborhood_squared_radius();
+            int triCount = reconstruct.number_of_triangles();
+            simInt *idxArray = new simInt[triCount*3];
+            int idxCnt = 0;
+            for(std::size_t shell = 0; shell < reconstruct.number_of_shells(); ++shell) {
+                for(Triple_iterator it = reconstruct.shell_begin(shell); it != reconstruct.shell_end(shell); ++it)
+                {
+                    const Triple &triple = *it;
+                    idxArray[idxCnt++] = triple.at(0);
+                    idxArray[idxCnt++] = triple.at(1);
+                    idxArray[idxCnt++] = triple.at(2);
+                }
+            }
 #if DEBUG_OUTPUT_RECONSTRUCTED_PLY
-    std::ofstream f;
-    f.open("reconstructed.ply");
-    f << "ply\nformat ascii 1.0\nelement vertex " << ptCnt << "\nproperty float x\nproperty float y\nproperty float z\nelement face " << triCount << "\nproperty list uchar int vertex_index\nend_header\n";
-    for(int i = 0; i < ptCnt; i++)
-        f << ptArray[3 * i] << " " << ptArray[3 * i + 1] << " " << ptArray[3 * i + 2] << std::endl;
-    for(int i = 0; i < triCount; i++)
-        f << "3 " << idxArray[3 * i] << " " << idxArray[3 * i + 1] << " " << idxArray[3 * i + 2] << std::endl;
-    f.close();
+            std::ofstream f;
+            f.open("reconstructed.ply");
+            f << "ply\nformat ascii 1.0\nelement vertex " << ptCnt << "\nproperty float x\nproperty float y\nproperty float z\nelement face " << triCount << "\nproperty list uchar int vertex_index\nend_header\n";
+            for(int i = 0; i < ptCnt; i++)
+                f << ptArray[3 * i] << " " << ptArray[3 * i + 1] << " " << ptArray[3 * i + 2] << std::endl;
+            for(int i = 0; i < triCount; i++)
+                f << "3 " << idxArray[3 * i] << " " << idxArray[3 * i + 1] << " " << idxArray[3 * i + 2] << std::endl;
+            f.close();
 #endif
-    out->meshHandle = simCreateMeshShape(0, 1.2, ptArray, 3 * ptCnt, idxArray, idxCnt, 0);
-    if(out->meshHandle == -1)
-        throw string("call to simCreateMeshShape failed");
+            out->meshHandle = simCreateMeshShape(0, 1.2, ptArray, 3 * ptCnt, idxArray, idxCnt, 0);
+            if(out->meshHandle == -1)
+                throw string("call to simCreateMeshShape failed");
+        }
+        break;
+    default:
+        string err = "algorithm not implemented: ";
+        err += algorithm_string(algorithm);
+        throw err;
+    }
 
     DBG << "[leave]" << std::endl;
 }

@@ -9,6 +9,9 @@
             <param name="pointCloudHandle" type="int">
                 <description>handle of the point cloud</description>
             </param>
+            <param name="algorithm" type="int" default="sim_surfacereconstruction_algorithm_scalespace">
+                <description>reconstruction algorithm to use</description>
+            </param>
         </params>
         <return>
             <param name="meshHandle" type="int">
@@ -19,4 +22,9 @@
             </param>
         </return>
     </command>
+    <enum name="Algorithm" item-prefix="sim_surfacereconstruction_algorithm_" base="6785">
+        <item name="scalespace" />
+        <item name="poisson" />
+        <item name="advancingfront" />
+    </enum>
 </plugin>
