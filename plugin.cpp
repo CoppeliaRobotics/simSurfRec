@@ -81,14 +81,28 @@ typedef Reconstruction::Triple                                  Triple;
 using std::string;
 
 #include <fstream>
+#include <cstring>
+
 void reconstruct(SScriptCallBack *p, const char *cmd, reconstruct_in *in, reconstruct_out *out)
 {
     DBG << "[enter]" << std::endl;
 
+    // get point cloud points:
     int ptCnt = -1;
-    const float *ptArray = simGetPointCloudPoints(in->pointCloudHandle, &ptCnt, 0);
-    if(!ptArray)
+    const float *ptArray0 = simGetPointCloudPoints(in->pointCloudHandle, &ptCnt, 0);
+    if(!ptArray0)
         throw string("call to simGetPointCloudPoints failed");
+    float ptArray1[ptCnt * 3];
+    float *ptArray = &ptArray1[0];
+    std::memcpy(ptArray, ptArray0, sizeof(float) * 3 * ptCnt);
+
+    // transform points wrt point cloud frame:
+    simFloat pclMatrix[12];
+    simGetObjectMatrix(in->pointCloudHandle, -1, &pclMatrix[0]);
+    for(int i = 0; i < ptCnt; i++)
+        if(simTransformVector(&pclMatrix[0], ptArray + 3 * i) == -1)
+            throw string("simTransformVector failed");
+
     Algorithm algorithm = (Algorithm)in->algorithm;
     switch(algorithm)
     {
@@ -122,8 +136,8 @@ void reconstruct(SScriptCallBack *p, const char *cmd, reconstruct_in *in, recons
                 f << "3 " << idxArray[3 * i] << " " << idxArray[3 * i + 1] << " " << idxArray[3 * i + 2] << std::endl;
             f.close();
 #endif
-            out->meshHandle = simCreateMeshShape(0, 1.2, ptArray, 3 * ptCnt, idxArray, idxCnt, 0);
-            if(out->meshHandle == -1)
+            out->shapeHandle = simCreateMeshShape(0, 1.2, ptArray, 3 * ptCnt, idxArray, idxCnt, 0);
+            if(out->shapeHandle == -1)
                 throw string("call to simCreateMeshShape failed");
         }
         break;

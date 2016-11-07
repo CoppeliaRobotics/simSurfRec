@@ -14,8 +14,8 @@
             </param>
         </params>
         <return>
-            <param name="meshHandle" type="int">
-                <description>handle of the reconstructed mesh</description>
+            <param name="shapeHandle" type="int">
+                <description>handle of the shape with the reconstructed mesh</description>
             </param>
             <param name="neighborhoodSquaredRadius" type="float">
                 <description>neighborhood squared radius</description>
