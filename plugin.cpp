@@ -42,10 +42,12 @@ VREP_DLLEXPORT void* v_repMessage(int message,int* auxiliaryData,void* customDat
 #include "plugin.h"
 #include "debug.h"
 #include "v_repLib.h"
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <cstring>
 #include <vector>
 #include <map>
 #include <boost/algorithm/string/predicate.hpp>
@@ -67,10 +69,12 @@ LIBRARY vrepLib; // the V-REP library that we will dynamically load and bind
 
 #include "stubs.h"
 
+using std::string;
+
+// for Scale-Space reconstruction:
 #include <CGAL/Scale_space_surface_reconstruction_3.h>
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Timer.h>
-
 typedef CGAL::Exact_predicates_inexact_constructions_kernel     Kernel;
 typedef CGAL::Scale_space_surface_reconstruction_3<Kernel>      Reconstruction;
 typedef Reconstruction::Point                                   Point;
@@ -78,10 +82,39 @@ typedef std::vector<Point>                                      Point_collection
 typedef Reconstruction::Triple_const_iterator                   Triple_iterator;
 typedef Reconstruction::Triple                                  Triple;
 
-using std::string;
+// for Advancing Front reconstruction:
+#include <CGAL/Simple_cartesian.h>
+#include <CGAL/Advancing_front_surface_reconstruction.h>
+#include <CGAL/tuple.h>
+typedef CGAL::Simple_cartesian<double> K;
+typedef K::Point_3  Point_3;
+typedef CGAL::cpp11::array<std::size_t,3> Facet;
 
-#include <fstream>
-#include <cstring>
+struct Perimeter {
+    double bound;
+
+    Perimeter(double bound) : bound(bound) {}
+
+    template <typename AdvancingFront, typename Cell_handle>
+    double operator() (const AdvancingFront& adv, Cell_handle& c, const int& index) const {
+	// bound == 0 is better than bound < infinity
+	// as it avoids the distance computations
+	if(bound == 0){
+	    return adv.smallest_radius_delaunay_sphere (c, index);
+	}
+	// If perimeter > bound, return infinity so that facet is not used
+	double d  = 0;
+	d = sqrt(squared_distance(c->vertex((index+1)%4)->point(), c->vertex((index+2)%4)->point()));
+	if(d>bound) return adv.infinity();
+	d += sqrt(squared_distance(c->vertex((index+2)%4)->point(), c->vertex((index+3)%4)->point()));
+	if(d>bound) return adv.infinity();
+	d += sqrt(squared_distance(c->vertex((index+1)%4)->point(), c->vertex((index+3)%4)->point()));
+	if(d>bound) return adv.infinity();
+	// Otherwise, return usual priority value: smallest radius of
+	// delaunay sphere
+	return adv.smallest_radius_delaunay_sphere (c, index);
+    }
+};
 
 void reconstruct(SScriptCallBack *p, const char *cmd, reconstruct_in *in, reconstruct_out *out)
 {
@@ -126,21 +159,21 @@ void reconstruct(SScriptCallBack *p, const char *cmd, reconstruct_in *in, recons
                     idxArray[idxCnt++] = triple.at(2);
                 }
             }
-#if DEBUG_OUTPUT_RECONSTRUCTED_PLY
-            std::ofstream f;
-            f.open("reconstructed.ply");
-            f << "ply\nformat ascii 1.0\nelement vertex " << ptCnt << "\nproperty float x\nproperty float y\nproperty float z\nelement face " << triCount << "\nproperty list uchar int vertex_index\nend_header\n";
-            for(int i = 0; i < ptCnt; i++)
-                f << ptArray[3 * i] << " " << ptArray[3 * i + 1] << " " << ptArray[3 * i + 2] << std::endl;
-            for(int i = 0; i < triCount; i++)
-                f << "3 " << idxArray[3 * i] << " " << idxArray[3 * i + 1] << " " << idxArray[3 * i + 2] << std::endl;
-            f.close();
-#endif
             out->shapeHandle = simCreateMeshShape(0, 1.2, ptArray, 3 * ptCnt, idxArray, idxCnt, 0);
             if(out->shapeHandle == -1)
                 throw string("call to simCreateMeshShape failed");
         }
         break;
+    case sim_surfacereconstruction_algorithm_advancingfront:
+	{
+	    std::vector<Point_3> points;
+            for(int i = 0; i < ptCnt * 3; i += 3)
+                points.push_back(Point_3(ptArray[i], ptArray[i+1], ptArray[i+2]));
+	    std::vector<Facet> facets;
+	    Perimeter perimeter(in->perimeterBound);
+	    CGAL::advancing_front_surface_reconstruction(points.begin(), points.end(), std::back_inserter(facets), perimeter);
+	}
+	break;
     default:
         string err = "algorithm not implemented: ";
         err += algorithm_string(algorithm);

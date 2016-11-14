@@ -12,13 +12,16 @@
             <param name="algorithm" type="int" default="sim_surfacereconstruction_algorithm_scalespace">
                 <description>reconstruction algorithm to use</description>
             </param>
+            <param name="perimeterBound" type="float" default="0.0">
+                <description>perimeter bound, used by advancing front reconstruction algorithm</description>
+            </param>
         </params>
         <return>
             <param name="shapeHandle" type="int">
                 <description>handle of the shape with the reconstructed mesh</description>
             </param>
             <param name="neighborhoodSquaredRadius" type="float">
-                <description>neighborhood squared radius</description>
+                <description>neighborhood squared radius, returned by scale-space reconstruction algorithm</description>
             </param>
         </return>
     </command>
