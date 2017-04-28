@@ -25,7 +25,7 @@
             </param>
         </return>
     </command>
-    <enum name="Algorithm" item-prefix="sim_surfacereconstruction_algorithm_" base="6785">
+    <enum name="Algorithm" item-prefix="algorithm_" base="6785">
         <item name="scalespace" />
         <item name="poisson" />
         <item name="advancingfront" />
