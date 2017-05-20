@@ -23,7 +23,7 @@ else()
   MESSAGE(STATUS "generating the stubs (stubs.h and stubs.cpp)")
   add_custom_command(OUTPUT
     ${CMAKE_SOURCE_DIR}/stubs.cpp ${CMAKE_SOURCE_DIR}/stubs.h
-    COMMAND python -m v_repStubsGen -H ${CMAKE_SOURCE_DIR}/stubs.h -C ${CMAKE_SOURCE_DIR}/stubs.cpp ${CMAKE_SOURCE_DIR}/callbacks.xml
+    COMMAND python ${CMAKE_SOURCE_DIR}/external/v_repStubsGen/main.py -H ${CMAKE_SOURCE_DIR}/stubs.h -C ${CMAKE_SOURCE_DIR}/stubs.cpp ${CMAKE_SOURCE_DIR}/callbacks.xml
     DEPENDS ${CMAKE_SOURCE_DIR}/callbacks.xml)
 endif()
 
@@ -31,7 +31,7 @@ if(NOT EXISTS ${CMAKE_SOURCE_DIR}/reference.html)
   MESSAGE(STATUS "generating reference.html")
   add_custom_command(OUTPUT
     ${CMAKE_SOURCE_DIR}/reference.html
-    COMMAND saxon -s:${CMAKE_SOURCE_DIR}/callbacks.xml -a:on -o:${CMAKE_SOURCE_DIR}/reference.html
+    COMMAND xsltproc -o ${CMAKE_SOURCE_DIR}/reference.html ${CMAKE_SOURCE_DIR}/callbacks.xml ${CMAKE_SOURCE_DIR}/external/v_repStubsGen/xsl/reference.xsl
     DEPENDS ${CMAKE_SOURCE_DIR}/callbacks.xml)
   add_custom_target(gendoc ALL DEPENDS ${CMAKE_SOURCE_DIR}/reference.html)
 endif()
