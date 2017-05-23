@@ -7,10 +7,6 @@
 .DS_Store
 .AppleDouble
 .LSOverride
-reference.html
-widgets.html
-stubs.cpp
-stubs.h
 .qmake.stash
 moc_*.cpp
 Makefile
@@ -19,3 +15,4 @@ Makefile.Release
 CMakeFiles
 CMakeCache.txt
 cmake_install.cmake
+generated
