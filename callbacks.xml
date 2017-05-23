@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <?xml-stylesheet type="text/xsl" href="callbacks.xsl"?>
 
-<plugin name="SurfaceReconstruction" author="federico.ferri.it@gmail.com">
+<plugin name="SurfaceReconstruction" short-name="SurfRec" author="federico.ferri.it@gmail.com">
     <description>API functions for surface reconstruction from point clouds</description>
     <command name="reconstruct">
         <description></description>
