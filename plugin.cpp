@@ -125,16 +125,20 @@ void reconstruct(SScriptCallBack *p, const char *cmd, reconstruct_in *in, recons
     const float *ptArray0 = simGetPointCloudPoints(in->pointCloudHandle, &ptCnt, 0);
     if(!ptArray0)
         throw string("call to simGetPointCloudPoints failed");
-    float ptArray1[ptCnt * 3];
-    float *ptArray = &ptArray1[0];
+    float *ptArray = new float[ptCnt * 3];
     std::memcpy(ptArray, ptArray0, sizeof(float) * 3 * ptCnt);
 
     // transform points wrt point cloud frame:
     simFloat pclMatrix[12];
     simGetObjectMatrix(in->pointCloudHandle, -1, &pclMatrix[0]);
     for(int i = 0; i < ptCnt; i++)
+    {
         if(simTransformVector(&pclMatrix[0], ptArray + 3 * i) == -1)
+        {
+            delete ptArray;
             throw string("simTransformVector failed");
+        }
+    }
 
     Algorithm algorithm = (Algorithm)in->algorithm;
     switch(algorithm)
@@ -144,6 +148,7 @@ void reconstruct(SScriptCallBack *p, const char *cmd, reconstruct_in *in, recons
             Point_collection points;
             for(int i = 0; i < ptCnt * 3; i += 3)
                 points.push_back(Point(ptArray[i], ptArray[i+1], ptArray[i+2]));
+            delete ptArray;
             Reconstruction reconstruct(10, 200);
             reconstruct.reconstruct_surface(points.begin(), points.end(), 4);
             out->neighborhoodSquaredRadius = reconstruct.neighborhood_squared_radius();
@@ -169,6 +174,7 @@ void reconstruct(SScriptCallBack *p, const char *cmd, reconstruct_in *in, recons
 	    std::vector<Point_3> points;
             for(int i = 0; i < ptCnt * 3; i += 3)
                 points.push_back(Point_3(ptArray[i], ptArray[i+1], ptArray[i+2]));
+            delete ptArray;
 	    std::vector<Facet> facets;
 	    Perimeter perimeter(in->perimeterBound);
 	    CGAL::advancing_front_surface_reconstruction(points.begin(), points.end(), std::back_inserter(facets), perimeter);
