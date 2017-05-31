@@ -22,7 +22,7 @@ if((EXISTS ${CMAKE_SOURCE_DIR}/stubs.h) AND (EXISTS ${CMAKE_SOURCE_DIR}/stubs.cp
 else()
   MESSAGE(STATUS "generating the stubs (stubs.h and stubs.cpp)")
   add_custom_command(OUTPUT
-    ${CMAKE_SOURCE_DIR}/stubs.cpp ${CMAKE_SOURCE_DIR}/stubs.h
+    ${CMAKE_SOURCE_DIR}/generated/stubs.cpp ${CMAKE_SOURCE_DIR}/generated/stubs.h
     COMMAND python ${CMAKE_SOURCE_DIR}/external/v_repStubsGen/generate.py --xml-file ${CMAKE_SOURCE_DIR}/callbacks.xml --gen-all ${CMAKE_SOURCE_DIR}/generated
     DEPENDS ${CMAKE_SOURCE_DIR}/callbacks.xml)
 endif()
