@@ -16,6 +16,7 @@ include(CGAL_CreateSingleSourceCGALProgram)
 #add_definitions(${PCL_DEFINITIONS})
 
 include_directories($ENV{VREP_ROOT}/programming/include)
+include_directories(${CMAKE_SOURCE_DIR}/generated)
 
 add_custom_command(OUTPUT
     ${CMAKE_SOURCE_DIR}/generated/stubs.cpp ${CMAKE_SOURCE_DIR}/generated/stubs.h
