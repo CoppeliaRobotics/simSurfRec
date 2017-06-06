@@ -17,19 +17,13 @@ include(CGAL_CreateSingleSourceCGALProgram)
 
 include_directories($ENV{VREP_ROOT}/programming/include)
 
-if((EXISTS ${CMAKE_SOURCE_DIR}/stubs.h) AND (EXISTS ${CMAKE_SOURCE_DIR}/stubs.cpp))
-  MESSAGE(STATUS "using the prebuilt stubs (stubs.h and stubs.cpp)")
-else()
-  MESSAGE(STATUS "generating the stubs (stubs.h and stubs.cpp)")
-  add_custom_command(OUTPUT
+add_custom_command(OUTPUT
     ${CMAKE_SOURCE_DIR}/generated/stubs.cpp ${CMAKE_SOURCE_DIR}/generated/stubs.h
     COMMAND python ${CMAKE_SOURCE_DIR}/external/v_repStubsGen/generate.py --xml-file ${CMAKE_SOURCE_DIR}/callbacks.xml --gen-all ${CMAKE_SOURCE_DIR}/generated
     DEPENDS ${CMAKE_SOURCE_DIR}/callbacks.xml)
-endif()
 
 file(GLOB SOURCES *.cpp)
-list(REMOVE_ITEM SOURCES stubs.cpp)
-add_library(v_repExtSurfaceReconstruction SHARED ${SOURCES} stubs.cpp $ENV{VREP_ROOT}/programming/common/v_repLib.cpp)
+add_library(v_repExtSurfaceReconstruction SHARED ${SOURCES} ${CMAKE_SOURCE_DIR}/generated/stubs.cpp $ENV{VREP_ROOT}/programming/common/v_repLib.cpp)
 
 target_link_libraries(v_repExtSurfaceReconstruction ${CGAL_CORE_LIBRARY})
 
