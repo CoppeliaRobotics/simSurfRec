@@ -7,8 +7,6 @@
 3. Checkout and compile
 ```
 $ git clone --recursive https://github.com/fferri/v_repExtSurfaceReconstruction.git
-$ mkdir build
-$ cd build
-$ cmake ..
+$ cmake .
 $ cmake --build .
 ```
