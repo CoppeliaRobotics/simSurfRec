@@ -10,5 +10,5 @@ $ git clone --recursive https://github.com/fferri/v_repExtSurfaceReconstruction.
 $ mkdir build
 $ cd build
 $ cmake ..
-$ make
+$ cmake --build .
 ```
