@@ -135,7 +135,7 @@ void reconstruct(SScriptCallBack *p, const char *cmd, reconstruct_in *in, recons
     {
         if(simTransformVector(&pclMatrix[0], ptArray + 3 * i) == -1)
         {
-            delete ptArray;
+            delete[] ptArray;
             throw string("simTransformVector failed");
         }
     }
@@ -148,7 +148,7 @@ void reconstruct(SScriptCallBack *p, const char *cmd, reconstruct_in *in, recons
             Point_collection points;
             for(int i = 0; i < ptCnt * 3; i += 3)
                 points.push_back(Point(ptArray[i], ptArray[i+1], ptArray[i+2]));
-            delete ptArray;
+            delete[] ptArray;
             Reconstruction reconstruct(10, 200);
             reconstruct.reconstruct_surface(points.begin(), points.end(), 4);
             out->neighborhoodSquaredRadius = reconstruct.neighborhood_squared_radius();
@@ -174,7 +174,7 @@ void reconstruct(SScriptCallBack *p, const char *cmd, reconstruct_in *in, recons
 	    std::vector<Point_3> points;
             for(int i = 0; i < ptCnt * 3; i += 3)
                 points.push_back(Point_3(ptArray[i], ptArray[i+1], ptArray[i+2]));
-            delete ptArray;
+            delete[] ptArray;
 	    std::vector<Facet> facets;
 	    Perimeter perimeter(in->perimeterBound);
 	    CGAL::advancing_front_surface_reconstruction(points.begin(), points.end(), std::back_inserter(facets), perimeter);
