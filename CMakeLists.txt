@@ -18,7 +18,7 @@ include(CGAL_CreateSingleSourceCGALProgram)
 #link_directories(${PCL_LIBRARY_DIRS})
 #add_definitions(${PCL_DEFINITIONS})
 
-include_directories($ENV{VREP_ROOT}/programming/include)
+include_directories(${VREP_INCLUDE})
 include_directories(${CMAKE_SOURCE_DIR}/generated)
 
 add_custom_command(OUTPUT
@@ -27,6 +27,6 @@ add_custom_command(OUTPUT
     DEPENDS ${CMAKE_SOURCE_DIR}/callbacks.xml)
 
 file(GLOB SOURCES *.cpp)
-add_library(v_repExtSurfaceReconstruction SHARED ${SOURCES} ${CMAKE_SOURCE_DIR}/generated/stubs.cpp $ENV{VREP_ROOT}/programming/common/v_repLib.cpp)
+add_library(v_repExtSurfaceReconstruction SHARED ${SOURCES} ${CMAKE_SOURCE_DIR}/generated/stubs.cpp ${VREP_COMMON}/v_repLib.cpp)
 
 target_link_libraries(v_repExtSurfaceReconstruction ${CGAL_CORE_LIBRARY})
