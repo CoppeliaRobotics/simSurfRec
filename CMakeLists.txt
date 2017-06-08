@@ -28,5 +28,4 @@ add_custom_command(OUTPUT
 
 file(GLOB SOURCES *.cpp)
 add_library(v_repExtSurfaceReconstruction SHARED ${SOURCES} ${CMAKE_SOURCE_DIR}/generated/stubs.cpp ${VREP_COMMON}/v_repLib.cpp)
-
-target_link_libraries(v_repExtSurfaceReconstruction ${CGAL_CORE_LIBRARY})
+target_link_libraries(v_repExtSurfaceReconstruction ${CGAL_CORE_LIBRARY} ${VREP_LIBRARIES})
