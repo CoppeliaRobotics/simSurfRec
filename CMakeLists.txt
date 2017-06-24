@@ -21,7 +21,7 @@ include(CGAL_CreateSingleSourceCGALProgram)
 #add_definitions(${PCL_DEFINITIONS})
 
 include_directories(${VREP_INCLUDE})
-include_directories(${CMAKE_SOURCE_DIR}/generated)
+include_directories(${CMAKE_BINARY_DIR}/generated)
 
 vrep_generate_stubs(${CMAKE_BINARY_DIR}/generated XML_FILE ${CMAKE_SOURCE_DIR}/callbacks.xml)
 
