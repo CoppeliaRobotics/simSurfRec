@@ -26,5 +26,5 @@ include_directories(${CMAKE_SOURCE_DIR}/generated)
 vrep_generate_stubs(${CMAKE_BINARY_DIR}/generated XML_FILE ${CMAKE_SOURCE_DIR}/callbacks.xml)
 
 file(GLOB SOURCES *.cpp)
-add_library(v_repExtSurfaceReconstruction SHARED ${SOURCES} ${CMAKE_SOURCE_DIR}/generated/stubs.cpp ${VREP_EXPORTED_SOURCES})
+add_library(v_repExtSurfaceReconstruction SHARED ${SOURCES} ${CMAKE_BINARY_DIR}/generated/stubs.cpp ${VREP_EXPORTED_SOURCES})
 target_link_libraries(v_repExtSurfaceReconstruction ${CGAL_CORE_LIBRARY} ${VREP_LIBRARIES})
