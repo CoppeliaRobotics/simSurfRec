@@ -156,9 +156,11 @@ void reconstruct(SScriptCallBack *p, const char *cmd, reconstruct_in *in, recons
             ss << "Generated shape from " << ptCnt << " points " << idxCnt << " indices" << std::endl;
             std::cout << ss.str() << std::endl;
 #endif
-            out->shapeHandle = simCreateMeshShape(0, 1.2, ptArray, 3 * ptCnt, idxArray, idxCnt, 0);
+            out->shapeHandle = idxCnt > 0 ? simCreateMeshShape(0, 1.2, ptArray, 3 * ptCnt, idxArray, idxCnt, 0) : -1;
             delete[] ptArray;
             delete[] idxArray;
+            if(idxCnt <= 0)
+                throw string("mesh reconstruction failed");
             if(out->shapeHandle == -1)
                 throw string("call to simCreateMeshShape failed");
         }
