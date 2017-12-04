@@ -126,7 +126,6 @@ void reconstruct(SScriptCallBack *p, const char *cmd, reconstruct_in *in, recons
 #endif
                 points.push_back(Point(ptArray[i], ptArray[i+1], ptArray[i+2]));
             }
-            delete[] ptArray;
             Reconstruction reconstruct;
             reconstruct.insert(points.begin(), points.end());
             reconstruct.increase_scale(4);
@@ -158,6 +157,7 @@ void reconstruct(SScriptCallBack *p, const char *cmd, reconstruct_in *in, recons
             std::cout << ss.str() << std::endl;
 #endif
             out->shapeHandle = simCreateMeshShape(0, 1.2, ptArray, 3 * ptCnt, idxArray, idxCnt, 0);
+            delete[] ptArray;
             delete[] idxArray;
             if(out->shapeHandle == -1)
                 throw string("call to simCreateMeshShape failed");
