@@ -4,7 +4,7 @@
 <plugin name="SurfaceReconstruction" short-name="SurfRec" author="federico.ferri.it@gmail.com">
     <description>API functions for surface reconstruction from point clouds</description>
     <command name="reconstruct_scale_space">
-        <description></description>
+        <description>Reconstruct a mesh from the given point cloud</description>
         <params>
             <param name="pointCloudHandle" type="int">
                 <description>handle of the point cloud</description>
