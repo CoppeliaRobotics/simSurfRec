@@ -49,8 +49,8 @@ typedef CGAL::Exact_predicates_inexact_constructions_kernel     Kernel;
 typedef CGAL::Scale_space_surface_reconstruction_3<Kernel>      Reconstruction;
 typedef Reconstruction::Point                                   Point;
 typedef std::vector<Point>                                      Point_collection;
-typedef Reconstruction::Triple_const_iterator                   Triple_iterator;
-typedef Reconstruction::Triple                                  Triple;
+typedef Reconstruction::Facet                                   Facet;
+typedef Reconstruction::Facet_const_iterator                    Facet_const_iterator;
 
 // for Advancing Front reconstruction:
 #include <CGAL/Simple_cartesian.h>
@@ -58,7 +58,6 @@ typedef Reconstruction::Triple                                  Triple;
 #include <CGAL/tuple.h>
 typedef CGAL::Simple_cartesian<double> K;
 typedef K::Point_3  Point_3;
-typedef CGAL::cpp11::array<std::size_t,3> Facet;
 
 struct Perimeter {
     double bound;
@@ -85,6 +84,8 @@ struct Perimeter {
 	return adv.smallest_radius_delaunay_sphere (c, index);
     }
 };
+
+#define DEBUG_OBJ_OUTPUT
 
 void reconstruct(SScriptCallBack *p, const char *cmd, reconstruct_in *in, reconstruct_out *out)
 {
@@ -117,24 +118,47 @@ void reconstruct(SScriptCallBack *p, const char *cmd, reconstruct_in *in, recons
         {
             Point_collection points;
             for(int i = 0; i < ptCnt * 3; i += 3)
+            {
+#ifdef DEBUG_OBJ_OUTPUT
+                std::stringstream ss;
+                ss << "v " << ptArray[i] << " " << ptArray[i+1] << " " << ptArray[i+2];
+                std::cout << ss.str() << std::endl;
+#endif
                 points.push_back(Point(ptArray[i], ptArray[i+1], ptArray[i+2]));
+            }
             delete[] ptArray;
-            Reconstruction reconstruct(10, 200);
-            reconstruct.reconstruct_surface(points.begin(), points.end(), 4);
-            out->neighborhoodSquaredRadius = reconstruct.neighborhood_squared_radius();
-            int triCount = reconstruct.number_of_triangles();
+            Reconstruction reconstruct;
+            reconstruct.insert(points.begin(), points.end());
+            reconstruct.increase_scale(4);
+            reconstruct.reconstruct_surface();
+            out->neighborhoodSquaredRadius = 0; /* REMOVED in 4.11: reconstruct.neighborhood_squared_radius(); */
+            int triCount = reconstruct.number_of_facets();
             simInt *idxArray = new simInt[triCount*3];
             int idxCnt = 0;
-            for(std::size_t shell = 0; shell < reconstruct.number_of_shells(); ++shell) {
-                for(Triple_iterator it = reconstruct.shell_begin(shell); it != reconstruct.shell_end(shell); ++it)
-                {
-                    const Triple &triple = *it;
-                    idxArray[idxCnt++] = triple.at(0);
-                    idxArray[idxCnt++] = triple.at(1);
-                    idxArray[idxCnt++] = triple.at(2);
-                }
+            for(Facet_const_iterator it = reconstruct.facets_begin(); it != reconstruct.facets_end(); ++it)
+            {
+                const Facet &facet = *it;
+#ifdef DEBUG_OBJ_OUTPUT
+                std::stringstream ss;
+                ss << "f " << facet.at(0) << " " << facet.at(1) << " " << facet.at(2);
+                if(facet.at(0) < 0 || facet.at(0) >= points.size() ||
+                        facet.at(1) < 0 || facet.at(1) >= points.size() ||
+                        facet.at(2) < 0 || facet.at(2) >= points.size())
+                    std::cout << "# OUT OF BOUNDS: " << ss.str() << std::endl;
+                else
+                    std::cout << ss.str() << std::endl;
+#endif
+                idxArray[idxCnt++] = facet.at(0);
+                idxArray[idxCnt++] = facet.at(1);
+                idxArray[idxCnt++] = facet.at(2);
             }
+#ifdef DEBUG_OBJ_OUTPUT
+            std::stringstream ss;
+            ss << "Generated shape from " << ptCnt << " points " << idxCnt << " indices" << std::endl;
+            std::cout << ss.str() << std::endl;
+#endif
             out->shapeHandle = simCreateMeshShape(0, 1.2, ptArray, 3 * ptCnt, idxArray, idxCnt, 0);
+            delete[] idxArray;
             if(out->shapeHandle == -1)
                 throw string("call to simCreateMeshShape failed");
         }
