@@ -3,31 +3,29 @@
 
 <plugin name="SurfaceReconstruction" short-name="SurfRec" author="federico.ferri.it@gmail.com">
     <description>API functions for surface reconstruction from point clouds</description>
-    <command name="reconstruct">
+    <command name="reconstruct_scale_space">
         <description></description>
         <params>
             <param name="pointCloudHandle" type="int">
                 <description>handle of the point cloud</description>
             </param>
-            <param name="algorithm" type="int" default="sim_surfacereconstruction_algorithm_scalespace">
-                <description>reconstruction algorithm to use</description>
+            <param name="iterations" type="int" default="4">
+                <description>number of iterations</description>
             </param>
-            <param name="perimeterBound" type="float" default="0.0">
-                <description>perimeter bound, used by advancing front reconstruction algorithm</description>
+            <param name="neighbors" type="int" default="12">
+                <description>number of neighbors a point's neighborhood should contain on average</description>
+            </param>
+            <param name="samples" type="int" default="300">
+                <description>number of points sampled to estimate the neighborhood radius</description>
+            </param>
+            <param name="squared_radius" type="float" default="-1.0">
+                <description>neighborhood squared radius used for principal component analysis. if this is positive, neighbors and samples will be ignored</description>
             </param>
         </params>
         <return>
             <param name="shapeHandle" type="int">
-                <description>handle of the shape with the reconstructed mesh</description>
-            </param>
-            <param name="neighborhoodSquaredRadius" type="float">
-                <description>neighborhood squared radius, returned by scale-space reconstruction algorithm</description>
+                <description>handle of the shape with the reconstructed mesh, or -1 if failed</description>
             </param>
         </return>
     </command>
-    <enum name="Algorithm" item-prefix="algorithm_" base="6785">
-        <item name="scalespace" />
-        <item name="poisson" />
-        <item name="advancingfront" />
-    </enum>
 </plugin>

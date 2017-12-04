@@ -41,53 +41,22 @@ LIBRARY vrepLib;
 
 using std::string;
 
-// for Scale-Space reconstruction:
 #include <CGAL/Scale_space_surface_reconstruction_3.h>
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Timer.h>
+
 typedef CGAL::Exact_predicates_inexact_constructions_kernel     Kernel;
 typedef CGAL::Scale_space_surface_reconstruction_3<Kernel>      Reconstruction;
+typedef CGAL::Scale_space_reconstruction_3::Alpha_shape_mesher<Kernel> Mesher;
+typedef CGAL::Scale_space_reconstruction_3::Weighted_PCA_smoother<Kernel> Smoother;
 typedef Reconstruction::Point                                   Point;
 typedef std::vector<Point>                                      Point_collection;
 typedef Reconstruction::Facet                                   Facet;
 typedef Reconstruction::Facet_const_iterator                    Facet_const_iterator;
 
-// for Advancing Front reconstruction:
-#include <CGAL/Simple_cartesian.h>
-#include <CGAL/Advancing_front_surface_reconstruction.h>
-#include <CGAL/tuple.h>
-typedef CGAL::Simple_cartesian<double> K;
-typedef K::Point_3  Point_3;
-
-struct Perimeter {
-    double bound;
-
-    Perimeter(double bound) : bound(bound) {}
-
-    template <typename AdvancingFront, typename Cell_handle>
-    double operator() (const AdvancingFront& adv, Cell_handle& c, const int& index) const {
-	// bound == 0 is better than bound < infinity
-	// as it avoids the distance computations
-	if(bound == 0){
-	    return adv.smallest_radius_delaunay_sphere (c, index);
-	}
-	// If perimeter > bound, return infinity so that facet is not used
-	double d  = 0;
-	d = sqrt(squared_distance(c->vertex((index+1)%4)->point(), c->vertex((index+2)%4)->point()));
-	if(d>bound) return adv.infinity();
-	d += sqrt(squared_distance(c->vertex((index+2)%4)->point(), c->vertex((index+3)%4)->point()));
-	if(d>bound) return adv.infinity();
-	d += sqrt(squared_distance(c->vertex((index+1)%4)->point(), c->vertex((index+3)%4)->point()));
-	if(d>bound) return adv.infinity();
-	// Otherwise, return usual priority value: smallest radius of
-	// delaunay sphere
-	return adv.smallest_radius_delaunay_sphere (c, index);
-    }
-};
-
 #define DEBUG_OBJ_OUTPUT
 
-void reconstruct(SScriptCallBack *p, const char *cmd, reconstruct_in *in, reconstruct_out *out)
+void reconstruct_scale_space(SScriptCallBack *p, const char *cmd, reconstruct_scale_space_in *in, reconstruct_scale_space_out *out)
 {
     DBG << "[enter]" << std::endl;
 
@@ -111,76 +80,52 @@ void reconstruct(SScriptCallBack *p, const char *cmd, reconstruct_in *in, recons
         }
     }
 
-    Algorithm algorithm = (Algorithm)in->algorithm;
-    switch(algorithm)
+    Point_collection points;
+    for(int i = 0; i < ptCnt * 3; i += 3)
     {
-    case sim_surfacereconstruction_algorithm_scalespace:
-        {
-            Point_collection points;
-            for(int i = 0; i < ptCnt * 3; i += 3)
-            {
 #ifdef DEBUG_OBJ_OUTPUT
-                std::stringstream ss;
-                ss << "v " << ptArray[i] << " " << ptArray[i+1] << " " << ptArray[i+2];
-                std::cout << ss.str() << std::endl;
+	std::stringstream ss;
+	ss << "v " << ptArray[i] << " " << ptArray[i+1] << " " << ptArray[i+2];
+	std::cout << ss.str() << std::endl;
 #endif
-                points.push_back(Point(ptArray[i], ptArray[i+1], ptArray[i+2]));
-            }
-            Reconstruction reconstruct;
-            reconstruct.insert(points.begin(), points.end());
-            reconstruct.increase_scale(4);
-            reconstruct.reconstruct_surface();
-            out->neighborhoodSquaredRadius = 0; /* REMOVED in 4.11: reconstruct.neighborhood_squared_radius(); */
-            int triCount = reconstruct.number_of_facets();
-            simInt *idxArray = new simInt[triCount*3];
-            int idxCnt = 0;
-            for(Facet_const_iterator it = reconstruct.facets_begin(); it != reconstruct.facets_end(); ++it)
-            {
-                const Facet &facet = *it;
-#ifdef DEBUG_OBJ_OUTPUT
-                std::stringstream ss;
-                ss << "f " << facet.at(0) << " " << facet.at(1) << " " << facet.at(2);
-                if(facet.at(0) < 0 || facet.at(0) >= points.size() ||
-                        facet.at(1) < 0 || facet.at(1) >= points.size() ||
-                        facet.at(2) < 0 || facet.at(2) >= points.size())
-                    std::cout << "# OUT OF BOUNDS: " << ss.str() << std::endl;
-                else
-                    std::cout << ss.str() << std::endl;
-#endif
-                idxArray[idxCnt++] = facet.at(0);
-                idxArray[idxCnt++] = facet.at(1);
-                idxArray[idxCnt++] = facet.at(2);
-            }
-#ifdef DEBUG_OBJ_OUTPUT
-            std::stringstream ss;
-            ss << "Generated shape from " << ptCnt << " points " << idxCnt << " indices" << std::endl;
-            std::cout << ss.str() << std::endl;
-#endif
-            out->shapeHandle = idxCnt > 0 ? simCreateMeshShape(0, 1.2, ptArray, 3 * ptCnt, idxArray, idxCnt, 0) : -1;
-            delete[] ptArray;
-            delete[] idxArray;
-            if(idxCnt <= 0)
-                throw string("mesh reconstruction failed");
-            if(out->shapeHandle == -1)
-                throw string("call to simCreateMeshShape failed");
-        }
-        break;
-    case sim_surfacereconstruction_algorithm_advancingfront:
-	{
-	    std::vector<Point_3> points;
-            for(int i = 0; i < ptCnt * 3; i += 3)
-                points.push_back(Point_3(ptArray[i], ptArray[i+1], ptArray[i+2]));
-            delete[] ptArray;
-	    std::vector<Facet> facets;
-	    Perimeter perimeter(in->perimeterBound);
-	    CGAL::advancing_front_surface_reconstruction(points.begin(), points.end(), std::back_inserter(facets), perimeter);
-	}
-	break;
-    default:
-        string err = "algorithm not implemented: ";
-        err += algorithm_string(algorithm);
-        throw err;
+	points.push_back(Point(ptArray[i], ptArray[i+1], ptArray[i+2]));
     }
+    Reconstruction reconstruct;
+    Smoother smoother_ns(in->neighbors, in->samples);
+    Smoother smoother_sr(in->squared_radius);
+    Smoother &smoother = in->squared_radius > 0 ? smoother_sr : smoother_ns;
+    Mesher mesher(smoother.squared_radius());
+    reconstruct.insert(points.begin(), points.end());
+    reconstruct.increase_scale(in->iterations, smoother);
+    reconstruct.reconstruct_surface(mesher);
+    int triCount = reconstruct.number_of_facets();
+    simInt *idxArray = new simInt[triCount*3];
+    int idxCnt = 0;
+    for(Facet_const_iterator it = reconstruct.facets_begin(); it != reconstruct.facets_end(); ++it)
+    {
+	const Facet &facet = *it;
+#ifdef DEBUG_OBJ_OUTPUT
+	std::stringstream ss;
+	ss << "f " << facet.at(0) << " " << facet.at(1) << " " << facet.at(2);
+	if(facet.at(0) < 0 || facet.at(0) >= points.size() ||
+		facet.at(1) < 0 || facet.at(1) >= points.size() ||
+		facet.at(2) < 0 || facet.at(2) >= points.size())
+	    std::cout << "# OUT OF BOUNDS: " << ss.str() << std::endl;
+	else
+	    std::cout << ss.str() << std::endl;
+#endif
+	idxArray[idxCnt++] = facet.at(0);
+	idxArray[idxCnt++] = facet.at(1);
+	idxArray[idxCnt++] = facet.at(2);
+    }
+#ifdef DEBUG_OBJ_OUTPUT
+    std::stringstream ss;
+    ss << "Generated shape from " << ptCnt << " points " << idxCnt << " indices" << std::endl;
+    std::cout << ss.str() << std::endl;
+#endif
+    out->shapeHandle = idxCnt > 0 ? simCreateMeshShape(0, 1.2, ptArray, 3 * ptCnt, idxArray, idxCnt, 0) : -1;
+    delete[] ptArray;
+    delete[] idxArray;
 
     DBG << "[leave]" << std::endl;
 }
