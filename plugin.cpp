@@ -54,8 +54,6 @@ typedef std::vector<Point>                                      Point_collection
 typedef Reconstruction::Facet                                   Facet;
 typedef Reconstruction::Facet_const_iterator                    Facet_const_iterator;
 
-#define DEBUG_OBJ_OUTPUT
-
 void reconstruct_scale_space(SScriptCallBack *p, const char *cmd, reconstruct_scale_space_in *in, reconstruct_scale_space_out *out)
 {
     DBG << "[enter]" << std::endl;
