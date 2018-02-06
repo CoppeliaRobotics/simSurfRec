@@ -22,11 +22,17 @@ include(CGAL_CreateSingleSourceCGALProgram)
 
 include_directories(${VREP_INCLUDE})
 include_directories(${CMAKE_BINARY_DIR}/generated)
+include_directories(${CMAKE_SOURCE_DIR}/external)
 
 vrep_generate_stubs(${CMAKE_BINARY_DIR}/generated XML_FILE ${CMAKE_SOURCE_DIR}/callbacks.xml LUA_FILE ${CMAKE_SOURCE_DIR}/simExtSurfaceReconstruction.lua)
 
-file(GLOB SOURCES *.cpp)
-add_library(v_repExtSurfaceReconstruction SHARED ${SOURCES} ${CMAKE_BINARY_DIR}/generated/stubs.cpp ${VREP_EXPORTED_SOURCES})
+set(SOURCES
+    plugin.cpp
+    ${CMAKE_SOURCE_DIR}/external/v_repPlusPlus/Plugin.cpp
+    ${CMAKE_BINARY_DIR}/generated/stubs.cpp
+    ${VREP_EXPORTED_SOURCES}
+)
+add_library(v_repExtSurfaceReconstruction SHARED ${SOURCES})
 target_link_libraries(v_repExtSurfaceReconstruction ${CGAL_CORE_LIBRARY} ${VREP_LIBRARIES})
 
 install(TARGETS v_repExtSurfaceReconstruction DESTINATION ${VREP_ROOT})

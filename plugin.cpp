@@ -1,17 +1,3 @@
-#ifdef _WIN32
-	#define VREP_DLLEXPORT extern "C" __declspec(dllexport)
-#endif /* _WIN32 */
-#if defined (__linux) || defined (__APPLE__)
-	#define VREP_DLLEXPORT extern "C"
-#endif /* __linux || __APPLE__ */
-
-VREP_DLLEXPORT unsigned char v_repStart(void* reservedPointer,int reservedInt);
-VREP_DLLEXPORT void v_repEnd();
-VREP_DLLEXPORT void* v_repMessage(int message,int* auxiliaryData,void* customData,int* replyData);
-
-#include "plugin.h"
-#include "debug.h"
-#include "v_repLib.h"
 #include <algorithm>
 #include <iostream>
 #include <fstream>
@@ -20,23 +6,12 @@ VREP_DLLEXPORT void* v_repMessage(int message,int* auxiliaryData,void* customDat
 #include <cstring>
 #include <vector>
 #include <map>
+
 #include <boost/algorithm/string/predicate.hpp>
 
-#ifdef _WIN32
-    #ifdef QT_COMPIL
-        #include <direct.h>
-    #else
-        #include <shlwapi.h>
-        #pragma comment(lib, "Shlwapi.lib")
-    #endif
-#endif /* _WIN32 */
-#if defined (__linux) || defined (__APPLE__)
-    #include <unistd.h>
-#define _stricmp strcasecmp
-#endif /* __linux || __APPLE__ */
-
-LIBRARY vrepLib;
-
+#include "v_repPlusPlus/Plugin.h"
+#include "plugin.h"
+#include "debug.h"
 #include "stubs.h"
 
 using std::string;
@@ -128,118 +103,14 @@ void reconstruct_scale_space(SScriptCallBack *p, const char *cmd, reconstruct_sc
     DBG << "[leave]" << std::endl;
 }
 
-VREP_DLLEXPORT unsigned char v_repStart(void* reservedPointer, int reservedInt)
+class Plugin : public vrep::Plugin
 {
-    char curDirAndFile[1024];
-#ifdef _WIN32
-    #ifdef QT_COMPIL
-        _getcwd(curDirAndFile, sizeof(curDirAndFile));
-    #else
-        GetModuleFileName(NULL, curDirAndFile, 1023);
-        PathRemoveFileSpec(curDirAndFile);
-    #endif
-#elif defined (__linux) || defined (__APPLE__)
-    getcwd(curDirAndFile, sizeof(curDirAndFile));
-#endif
-
-    std::string currentDirAndPath(curDirAndFile);
-    std::string temp(currentDirAndPath);
-#ifdef _WIN32
-    temp+="\\v_rep.dll";
-#elif defined (__linux)
-    temp+="/libv_rep.so";
-#elif defined (__APPLE__)
-    temp+="/libv_rep.dylib";
-#endif /* __linux || __APPLE__ */
-    vrepLib = loadVrepLibrary(temp.c_str());
-    if(vrepLib == NULL)
+public:
+    void onStart()
     {
-        std::cout << "Error, could not find or correctly load the V-REP library. Cannot start '" PLUGIN_NAME "' plugin." << std::endl;
-        return 0;
+        if(!registerScriptStuff())
+            throw std::runtime_error("failed to register script stuff");
     }
-    if(getVrepProcAddresses(vrepLib)==0)
-    {
-        std::cout << "Error, could not find all required functions in the V-REP library. Cannot start '" PLUGIN_NAME "' plugin." << std::endl;
-        unloadVrepLibrary(vrepLib);
-        return 0;
-    }
+};
 
-    int vrepVer;
-    simGetIntegerParameter(sim_intparam_program_version, &vrepVer);
-    if(vrepVer < 30203) // if V-REP version is smaller than 3.02.03
-    {
-        std::cout << "Sorry, your V-REP copy is somewhat old. Cannot start '" PLUGIN_NAME "' plugin." << std::endl;
-        unloadVrepLibrary(vrepLib);
-        return 0;
-    }
-
-    if(!registerScriptStuff())
-    {
-        std::cout << "Initialization failed." << std::endl;
-        unloadVrepLibrary(vrepLib);
-        return 0;
-    }
-
-    return PLUGIN_VERSION;
-}
-
-VREP_DLLEXPORT void v_repEnd()
-{
-    DBG << "[enter]" << std::endl;
-
-    unloadVrepLibrary(vrepLib); // release the library
-
-    DBG << "[leave]" << std::endl;
-}
-
-VREP_DLLEXPORT void* v_repMessage(int message, int* auxiliaryData, void* customData, int* replyData)
-{
-    // Keep following 5 lines at the beginning and unchanged:
-    static bool refreshDlgFlag = true;
-    int errorModeSaved;
-    simGetIntegerParameter(sim_intparam_error_report_mode, &errorModeSaved);
-    simSetIntegerParameter(sim_intparam_error_report_mode, sim_api_errormessage_ignore);
-    void* retVal=NULL;
-
-    static bool firstInstancePass = true;
-    if(firstInstancePass && message == sim_message_eventcallback_instancepass)
-    {
-        firstInstancePass = false;
-        //UIFunctions::getInstance(); // construct UIFunctions here (SIM thread)
-    }
-
-    if(message == sim_message_eventcallback_simulationended)
-    { // Simulation just ended
-        // TODO: move this to sim_message_eventcallback_simulationabouttoend
-        // TODO: ASSERT_THREAD(???)
-        //Proxy::destroyTransientObjects();
-    }
-
-#ifdef VREP_INSTANCE_SWITCH_WORKS
-    static int oldSceneID = simGetInt32ParameterE(sim_intparam_scene_unique_id);
-    if(message == sim_message_eventcallback_instanceswitch)
-    {
-        int newSceneID = simGetInt32ParameterE(sim_intparam_scene_unique_id);
-        //Proxy::sceneChange(oldSceneID, newSceneID);
-        oldSceneID = newSceneID;
-    }
-#else
-    // XXX: currently (3.3.1 beta) it is broken
-    if(message == sim_message_eventcallback_instancepass)
-    {
-        static int oldSceneID = -1;
-        if(oldSceneID == -1) oldSceneID = simGetInt32ParameterE(sim_intparam_scene_unique_id);
-        int sceneID = simGetInt32ParameterE(sim_intparam_scene_unique_id);
-        if(sceneID != oldSceneID)
-        {
-            //Proxy::sceneChange(oldSceneID, sceneID);
-            oldSceneID = sceneID;
-        }
-    }
-#endif
-
-    // Keep following unchanged:
-    simSetIntegerParameter(sim_intparam_error_report_mode, errorModeSaved); // restore previous settings
-    return(retVal);
-}
-
+VREP_PLUGIN(PLUGIN_NAME, PLUGIN_VERSION, Plugin)
