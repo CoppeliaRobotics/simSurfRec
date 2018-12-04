@@ -31,7 +31,7 @@ typedef Reconstruction::Facet_const_iterator                    Facet_const_iter
 
 void reconstruct_scale_space(SScriptCallBack *p, const char *cmd, reconstruct_scale_space_in *in, reconstruct_scale_space_out *out)
 {
-    DBG << "[enter]" << std::endl;
+    DEBUG_OUT << "[enter]" << std::endl;
 
     // get point cloud points:
     int ptCnt = -1;
@@ -100,7 +100,7 @@ void reconstruct_scale_space(SScriptCallBack *p, const char *cmd, reconstruct_sc
     delete[] ptArray;
     delete[] idxArray;
 
-    DBG << "[leave]" << std::endl;
+    DEBUG_OUT << "[leave]" << std::endl;
 }
 
 class Plugin : public vrep::Plugin
