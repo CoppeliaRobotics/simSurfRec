@@ -9,7 +9,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 
-#include "v_repPlusPlus/Plugin.h"
+#include "simPlusPlus/Plugin.h"
 #include "plugin.h"
 #include "debug.h"
 #include "stubs.h"
@@ -103,7 +103,7 @@ void reconstruct_scale_space(SScriptCallBack *p, const char *cmd, reconstruct_sc
     DEBUG_OUT << "[leave]" << std::endl;
 }
 
-class Plugin : public vrep::Plugin
+class Plugin : public sim::Plugin
 {
 public:
     void onStart()
@@ -116,4 +116,4 @@ public:
     }
 };
 
-VREP_PLUGIN(PLUGIN_NAME, PLUGIN_VERSION, Plugin)
+SIM_PLUGIN(PLUGIN_NAME, PLUGIN_VERSION, Plugin)

@@ -1,12 +1,12 @@
-# Surface Reconstruction plugin for V-REP
+# Surface Reconstruction plugin for CoppeliaSim
 
 ### Compiling
 
-1. Install required packages for [v_repStubsGen](https://github.com/CoppeliaRobotics/v_repStubsGen): see v_repStubsGen's [README](external/v_repStubsGen/README.md)
+1. Install required packages for [libPlugin](https://github.com/CoppeliaRobotics/libPlugin): see libPlugin's [README](external/libPlugin/README.md)
 2. Install CGAL 4.11
 3. Checkout and compile
 ```text
-$ git clone --recursive https://github.com/CoppeliaRobotics/v_repExtSurfaceReconstruction.git
+$ git clone --recursive https://github.com/CoppeliaRobotics/simExtSurfaceReconstruction.git
 $ cmake .
 $ cmake --build .
 ```
