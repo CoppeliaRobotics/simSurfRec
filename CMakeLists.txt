@@ -44,5 +44,5 @@ set(SOURCES
 add_library(simExtSurfaceReconstruction SHARED ${SOURCES})
 target_link_libraries(simExtSurfaceReconstruction ${CGAL_CORE_LIBRARY} ${COPPELIASIM_LIBRARIES})
 
-install(TARGETS simExtSurfaceReconstruction DESTINATION ${COPPELIASIM_ROOT_DIR})
+install(TARGETS simExtSurfaceReconstruction DESTINATION ${COPPELIASIM_PLUGINS_DIR})
 
