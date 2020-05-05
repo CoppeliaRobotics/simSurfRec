@@ -11,7 +11,6 @@
 
 #include "simPlusPlus/Plugin.h"
 #include "plugin.h"
-#include "debug.h"
 #include "stubs.h"
 
 using std::string;
@@ -43,8 +42,6 @@ public:
 
     void reconstruct_scale_space(reconstruct_scale_space_in *in, reconstruct_scale_space_out *out)
     {
-        DEBUG_OUT << "[enter]" << std::endl;
-
         // get point cloud points:
         int ptCnt = -1;
         const float *ptArray0 = simGetPointCloudPoints(in->pointCloudHandle, &ptCnt, 0);
@@ -68,12 +65,8 @@ public:
         Point_collection points;
         for(int i = 0; i < ptCnt * 3; i += 3)
         {
-#ifdef DEBUG_OBJ_OUTPUT
-        std::stringstream ss;
-        ss << "v " << ptArray[i] << " " << ptArray[i+1] << " " << ptArray[i+2];
-        std::cout << ss.str() << std::endl;
-#endif
-        points.push_back(Point(ptArray[i], ptArray[i+1], ptArray[i+2]));
+            log(sim_verbosity_debug, boost::format("%f %f %f") % ptArray[i] % ptArray[i+1] % ptArray[i+2]);
+            points.push_back(Point(ptArray[i], ptArray[i+1], ptArray[i+2]));
         }
         Reconstruction reconstruct;
         Smoother smoother_ns(in->neighbors, in->samples);
@@ -88,31 +81,21 @@ public:
         int idxCnt = 0;
         for(Facet_const_iterator it = reconstruct.facets_begin(); it != reconstruct.facets_end(); ++it)
         {
-        const Facet &facet = *it;
-#ifdef DEBUG_OBJ_OUTPUT
-        std::stringstream ss;
-        ss << "f " << facet.at(0) << " " << facet.at(1) << " " << facet.at(2);
-        if(facet.at(0) < 0 || facet.at(0) >= points.size() ||
-            facet.at(1) < 0 || facet.at(1) >= points.size() ||
-            facet.at(2) < 0 || facet.at(2) >= points.size())
-            std::cout << "# OUT OF BOUNDS: " << ss.str() << std::endl;
-        else
-            std::cout << ss.str() << std::endl;
-#endif
-        idxArray[idxCnt++] = facet.at(0);
-        idxArray[idxCnt++] = facet.at(1);
-        idxArray[idxCnt++] = facet.at(2);
+            const Facet &facet = *it;
+            if(facet.at(0) < 0 || facet.at(0) >= points.size() ||
+                facet.at(1) < 0 || facet.at(1) >= points.size() ||
+                facet.at(2) < 0 || facet.at(2) >= points.size())
+                log(sim_verbosity_debug, boost::format("# OUT OF BOUNDS: f %f %f %f") % facet.at(0) % facet.at(1) % facet.at(2));
+            else
+                log(sim_verbosity_debug, boost::format("f %f %f %f") % facet.at(0) % facet.at(1) % facet.at(2));
+            idxArray[idxCnt++] = facet.at(0);
+            idxArray[idxCnt++] = facet.at(1);
+            idxArray[idxCnt++] = facet.at(2);
         }
-#ifdef DEBUG_OBJ_OUTPUT
-        std::stringstream ss;
-        ss << "Generated shape from " << ptCnt << " points " << idxCnt << " indices" << std::endl;
-        std::cout << ss.str() << std::endl;
-#endif
+        log(sim_verbosity_debug, boost::format("Generated shape from %d points %d indices") % ptCnt % idxCnt);
         out->shapeHandle = idxCnt > 0 ? simCreateMeshShape(0, 1.2, ptArray, 3 * ptCnt, idxArray, idxCnt, 0) : -1;
         delete[] ptArray;
         delete[] idxArray;
-
-        DEBUG_OUT << "[leave]" << std::endl;
     }
 };
 
