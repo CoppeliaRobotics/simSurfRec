@@ -29,80 +29,6 @@ typedef std::vector<Point>                                      Point_collection
 typedef Reconstruction::Facet                                   Facet;
 typedef Reconstruction::Facet_const_iterator                    Facet_const_iterator;
 
-void reconstruct_scale_space(SScriptCallBack *p, const char *cmd, reconstruct_scale_space_in *in, reconstruct_scale_space_out *out)
-{
-    DEBUG_OUT << "[enter]" << std::endl;
-
-    // get point cloud points:
-    int ptCnt = -1;
-    const float *ptArray0 = simGetPointCloudPoints(in->pointCloudHandle, &ptCnt, 0);
-    if(!ptArray0)
-        throw string("call to simGetPointCloudPoints failed");
-    float *ptArray = new float[ptCnt * 3];
-    std::memcpy(ptArray, ptArray0, sizeof(float) * 3 * ptCnt);
-
-    // transform points wrt point cloud frame:
-    simFloat pclMatrix[12];
-    simGetObjectMatrix(in->pointCloudHandle, -1, &pclMatrix[0]);
-    for(int i = 0; i < ptCnt; i++)
-    {
-        if(simTransformVector(&pclMatrix[0], ptArray + 3 * i) == -1)
-        {
-            delete[] ptArray;
-            throw string("simTransformVector failed");
-        }
-    }
-
-    Point_collection points;
-    for(int i = 0; i < ptCnt * 3; i += 3)
-    {
-#ifdef DEBUG_OBJ_OUTPUT
-	std::stringstream ss;
-	ss << "v " << ptArray[i] << " " << ptArray[i+1] << " " << ptArray[i+2];
-	std::cout << ss.str() << std::endl;
-#endif
-	points.push_back(Point(ptArray[i], ptArray[i+1], ptArray[i+2]));
-    }
-    Reconstruction reconstruct;
-    Smoother smoother_ns(in->neighbors, in->samples);
-    Smoother smoother_sr(in->squared_radius);
-    Smoother &smoother = in->squared_radius > 0 ? smoother_sr : smoother_ns;
-    Mesher mesher(smoother.squared_radius());
-    reconstruct.insert(points.begin(), points.end());
-    reconstruct.increase_scale(in->iterations, smoother);
-    reconstruct.reconstruct_surface(mesher);
-    int triCount = reconstruct.number_of_facets();
-    simInt *idxArray = new simInt[triCount*3];
-    int idxCnt = 0;
-    for(Facet_const_iterator it = reconstruct.facets_begin(); it != reconstruct.facets_end(); ++it)
-    {
-	const Facet &facet = *it;
-#ifdef DEBUG_OBJ_OUTPUT
-	std::stringstream ss;
-	ss << "f " << facet.at(0) << " " << facet.at(1) << " " << facet.at(2);
-	if(facet.at(0) < 0 || facet.at(0) >= points.size() ||
-		facet.at(1) < 0 || facet.at(1) >= points.size() ||
-		facet.at(2) < 0 || facet.at(2) >= points.size())
-	    std::cout << "# OUT OF BOUNDS: " << ss.str() << std::endl;
-	else
-	    std::cout << ss.str() << std::endl;
-#endif
-	idxArray[idxCnt++] = facet.at(0);
-	idxArray[idxCnt++] = facet.at(1);
-	idxArray[idxCnt++] = facet.at(2);
-    }
-#ifdef DEBUG_OBJ_OUTPUT
-    std::stringstream ss;
-    ss << "Generated shape from " << ptCnt << " points " << idxCnt << " indices" << std::endl;
-    std::cout << ss.str() << std::endl;
-#endif
-    out->shapeHandle = idxCnt > 0 ? simCreateMeshShape(0, 1.2, ptArray, 3 * ptCnt, idxArray, idxCnt, 0) : -1;
-    delete[] ptArray;
-    delete[] idxArray;
-
-    DEBUG_OUT << "[leave]" << std::endl;
-}
-
 class Plugin : public sim::Plugin
 {
 public:
@@ -114,6 +40,81 @@ public:
         setExtVersion("Surface Reconstruction Plugin");
         setBuildDate(BUILD_DATE);
     }
+
+    void reconstruct_scale_space(reconstruct_scale_space_in *in, reconstruct_scale_space_out *out)
+    {
+        DEBUG_OUT << "[enter]" << std::endl;
+
+        // get point cloud points:
+        int ptCnt = -1;
+        const float *ptArray0 = simGetPointCloudPoints(in->pointCloudHandle, &ptCnt, 0);
+        if(!ptArray0)
+            throw string("call to simGetPointCloudPoints failed");
+        float *ptArray = new float[ptCnt * 3];
+        std::memcpy(ptArray, ptArray0, sizeof(float) * 3 * ptCnt);
+
+        // transform points wrt point cloud frame:
+        simFloat pclMatrix[12];
+        simGetObjectMatrix(in->pointCloudHandle, -1, &pclMatrix[0]);
+        for(int i = 0; i < ptCnt; i++)
+        {
+            if(simTransformVector(&pclMatrix[0], ptArray + 3 * i) == -1)
+            {
+                delete[] ptArray;
+                throw string("simTransformVector failed");
+            }
+        }
+
+        Point_collection points;
+        for(int i = 0; i < ptCnt * 3; i += 3)
+        {
+#ifdef DEBUG_OBJ_OUTPUT
+        std::stringstream ss;
+        ss << "v " << ptArray[i] << " " << ptArray[i+1] << " " << ptArray[i+2];
+        std::cout << ss.str() << std::endl;
+#endif
+        points.push_back(Point(ptArray[i], ptArray[i+1], ptArray[i+2]));
+        }
+        Reconstruction reconstruct;
+        Smoother smoother_ns(in->neighbors, in->samples);
+        Smoother smoother_sr(in->squared_radius);
+        Smoother &smoother = in->squared_radius > 0 ? smoother_sr : smoother_ns;
+        Mesher mesher(smoother.squared_radius());
+        reconstruct.insert(points.begin(), points.end());
+        reconstruct.increase_scale(in->iterations, smoother);
+        reconstruct.reconstruct_surface(mesher);
+        int triCount = reconstruct.number_of_facets();
+        simInt *idxArray = new simInt[triCount*3];
+        int idxCnt = 0;
+        for(Facet_const_iterator it = reconstruct.facets_begin(); it != reconstruct.facets_end(); ++it)
+        {
+        const Facet &facet = *it;
+#ifdef DEBUG_OBJ_OUTPUT
+        std::stringstream ss;
+        ss << "f " << facet.at(0) << " " << facet.at(1) << " " << facet.at(2);
+        if(facet.at(0) < 0 || facet.at(0) >= points.size() ||
+            facet.at(1) < 0 || facet.at(1) >= points.size() ||
+            facet.at(2) < 0 || facet.at(2) >= points.size())
+            std::cout << "# OUT OF BOUNDS: " << ss.str() << std::endl;
+        else
+            std::cout << ss.str() << std::endl;
+#endif
+        idxArray[idxCnt++] = facet.at(0);
+        idxArray[idxCnt++] = facet.at(1);
+        idxArray[idxCnt++] = facet.at(2);
+        }
+#ifdef DEBUG_OBJ_OUTPUT
+        std::stringstream ss;
+        ss << "Generated shape from " << ptCnt << " points " << idxCnt << " indices" << std::endl;
+        std::cout << ss.str() << std::endl;
+#endif
+        out->shapeHandle = idxCnt > 0 ? simCreateMeshShape(0, 1.2, ptArray, 3 * ptCnt, idxArray, idxCnt, 0) : -1;
+        delete[] ptArray;
+        delete[] idxArray;
+
+        DEBUG_OUT << "[leave]" << std::endl;
+    }
 };
 
 SIM_PLUGIN(PLUGIN_NAME, PLUGIN_VERSION, Plugin)
+#include "stubsPlusPlus.cpp"
