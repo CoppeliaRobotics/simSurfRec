@@ -65,7 +65,7 @@ public:
         Point_collection points;
         for(int i = 0; i < ptCnt * 3; i += 3)
         {
-            log(sim_verbosity_debug, boost::format("%f %f %f") % ptArray[i] % ptArray[i+1] % ptArray[i+2]);
+            sim::addLog(sim_verbosity_debug, "%f %f %f", ptArray[i], ptArray[i+1], ptArray[i+2]);
             points.push_back(Point(ptArray[i], ptArray[i+1], ptArray[i+2]));
         }
         Reconstruction reconstruct;
@@ -85,14 +85,14 @@ public:
             if(facet.at(0) < 0 || facet.at(0) >= points.size() ||
                 facet.at(1) < 0 || facet.at(1) >= points.size() ||
                 facet.at(2) < 0 || facet.at(2) >= points.size())
-                log(sim_verbosity_debug, boost::format("# OUT OF BOUNDS: f %f %f %f") % facet.at(0) % facet.at(1) % facet.at(2));
+                sim::addLog(sim_verbosity_debug, "# OUT OF BOUNDS: f %f %f %f", facet.at(0), facet.at(1), facet.at(2));
             else
-                log(sim_verbosity_debug, boost::format("f %f %f %f") % facet.at(0) % facet.at(1) % facet.at(2));
+                sim::addLog(sim_verbosity_debug, "f %f %f %f", facet.at(0), facet.at(1), facet.at(2));
             idxArray[idxCnt++] = facet.at(0);
             idxArray[idxCnt++] = facet.at(1);
             idxArray[idxCnt++] = facet.at(2);
         }
-        log(sim_verbosity_debug, boost::format("Generated shape from %d points %d indices") % ptCnt % idxCnt);
+        sim::addLog(sim_verbosity_debug, "Generated shape from %d points %d indices", ptCnt, idxCnt);
         out->shapeHandle = idxCnt > 0 ? simCreateMeshShape(0, 1.2, ptArray, 3 * ptCnt, idxArray, idxCnt, 0) : -1;
         delete[] ptArray;
         delete[] idxArray;
