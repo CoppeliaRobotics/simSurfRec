@@ -10,6 +10,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 
 #include "simPlusPlus/Plugin.h"
+#include "config.h"
 #include "plugin.h"
 #include "stubs.h"
 
