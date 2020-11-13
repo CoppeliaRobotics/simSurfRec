@@ -4,8 +4,6 @@ project(simExtSurfaceReconstruction)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_MACOSX_RPATH 1)
 
-find_package(Boost REQUIRED COMPONENTS system)
-
 if(NOT LIBPLUGIN_DIR)
     if(DEFINED ENV{COPPELIASIM_ROOT_DIR})
         set(LIBPLUGIN_DIR $ENV{COPPELIASIM_ROOT_DIR}/programming/libPlugin)
@@ -28,7 +26,6 @@ include(CGAL_CreateSingleSourceCGALProgram)
 #link_directories(${PCL_LIBRARY_DIRS})
 #add_definitions(${PCL_DEFINITIONS})
 
-include_directories(${COPPELIASIM_INCLUDE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external)
 
@@ -36,12 +33,5 @@ coppeliasim_generate_stubs(${CMAKE_CURRENT_BINARY_DIR}/generated XML_FILE ${CMAK
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
-set(SOURCES
-    plugin.cpp
-    ${COPPELIASIM_EXPORTED_SOURCES}
-)
-add_library(simExtSurfaceReconstruction SHARED ${SOURCES})
-target_link_libraries(simExtSurfaceReconstruction ${CGAL_CORE_LIBRARY} ${COPPELIASIM_LIBRARIES})
-
-install(TARGETS simExtSurfaceReconstruction DESTINATION ${COPPELIASIM_PLUGINS_DIR})
-
+coppeliasim_add_plugin(simExtSurfaceReconstruction SOURCES plugin.cpp)
+target_link_libraries(simExtSurfaceReconstruction ${CGAL_CORE_LIBRARY})
