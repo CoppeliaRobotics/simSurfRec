@@ -45,7 +45,7 @@ public:
         int ptCnt = -1;
         const float *ptArray0 = simGetPointCloudPoints(in->pointCloudHandle, &ptCnt, 0);
         if(!ptArray0)
-            throw string("call to simGetPointCloudPoints failed");
+            throw std::runtime_error("call to simGetPointCloudPoints failed");
         float *ptArray = new float[ptCnt * 3];
         std::memcpy(ptArray, ptArray0, sizeof(float) * 3 * ptCnt);
 
@@ -57,7 +57,7 @@ public:
             if(simTransformVector(&pclMatrix[0], ptArray + 3 * i) == -1)
             {
                 delete[] ptArray;
-                throw string("simTransformVector failed");
+                throw std::runtime_error("simTransformVector failed");
             }
         }
 
