@@ -6,7 +6,7 @@
 2. Install CGAL 4.11
 3. Checkout and compile
 ```text
-$ git clone --recursive https://github.com/CoppeliaRobotics/simExtSurfaceReconstruction.git
+$ git clone --recursive https://github.com/CoppeliaRobotics/simExtSurfRec.git
 $ cmake .
 $ cmake --build .
 ```
