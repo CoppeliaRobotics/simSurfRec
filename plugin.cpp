@@ -50,7 +50,7 @@ public:
         std::memcpy(ptArray, ptArray0, sizeof(float) * 3 * ptCnt);
 
         // transform points wrt point cloud frame:
-        simFloat pclMatrix[12];
+        float pclMatrix[12];
         simGetObjectMatrix(in->pointCloudHandle, -1, &pclMatrix[0]);
         for(int i = 0; i < ptCnt; i++)
         {
@@ -76,7 +76,7 @@ public:
         reconstruct.increase_scale(in->iterations, smoother);
         reconstruct.reconstruct_surface(mesher);
         int triCount = reconstruct.number_of_facets();
-        simInt *idxArray = new simInt[triCount*3];
+        int *idxArray = new int[triCount*3];
         int idxCnt = 0;
         for(Facet_const_iterator it = reconstruct.facets_begin(); it != reconstruct.facets_end(); ++it)
         {
