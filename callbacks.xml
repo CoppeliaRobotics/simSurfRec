@@ -18,7 +18,7 @@
             <param name="samples" type="int" default="300">
                 <description>number of points sampled to estimate the neighborhood radius</description>
             </param>
-            <param name="squared_radius" type="float" default="-1.0">
+            <param name="squared_radius" type="double" default="-1.0">
                 <description>neighborhood squared radius used for principal component analysis. if this is positive, neighbors and samples will be ignored</description>
             </param>
         </params>

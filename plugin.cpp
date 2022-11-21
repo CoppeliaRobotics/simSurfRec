@@ -43,14 +43,14 @@ public:
     {
         // get point cloud points:
         int ptCnt = -1;
-        const float *ptArray0 = simGetPointCloudPoints(in->pointCloudHandle, &ptCnt, 0);
+        const floatDouble *ptArray0 = simGetPointCloudPoints(in->pointCloudHandle, &ptCnt, 0);
         if(!ptArray0)
             throw std::runtime_error("call to simGetPointCloudPoints failed");
-        float *ptArray = new float[ptCnt * 3];
-        std::memcpy(ptArray, ptArray0, sizeof(float) * 3 * ptCnt);
+        floatDouble *ptArray = new floatDouble[ptCnt * 3];
+        std::memcpy(ptArray, ptArray0, sizeof(floatDouble) * 3 * ptCnt);
 
         // transform points wrt point cloud frame:
-        float pclMatrix[12];
+        floatDouble pclMatrix[12];
         simGetObjectMatrix(in->pointCloudHandle, -1, &pclMatrix[0]);
         for(int i = 0; i < ptCnt; i++)
         {
