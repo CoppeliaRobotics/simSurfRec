@@ -43,12 +43,11 @@ public:
     {
         // get point cloud points:
         int ptCnt = -1;
-        const double *ptArray0 = simGetPointCloudPoints(in->pointCloudHandle, &ptCnt, 0);
+        const double *ptArray0 = simGetPointCloudPoints(in->pointCloudHandle, &ptCnt, 0); // readonly, don't release
         if(!ptArray0)
             throw std::runtime_error("call to simGetPointCloudPoints failed");
         double *ptArray = new double[ptCnt * 3];
         std::memcpy(ptArray, ptArray0, sizeof(double) * 3 * ptCnt);
-        simReleaseBuffer(ptArray0);
 
         // transform points wrt point cloud frame:
         double pclMatrix[12];
