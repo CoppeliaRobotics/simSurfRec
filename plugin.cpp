@@ -41,24 +41,16 @@ public:
 
     void reconstruct_scale_space(reconstruct_scale_space_in *in, reconstruct_scale_space_out *out)
     {
-        // get point cloud points:
-        int ptCnt = -1;
-        const double *ptArray0 = simGetPointCloudPoints(in->pointCloudHandle, &ptCnt, 0); // readonly, don't release
-        if(!ptArray0)
-            throw std::runtime_error("call to simGetPointCloudPoints failed");
-        double *ptArray = new double[ptCnt * 3];
-        std::memcpy(ptArray, ptArray0, sizeof(double) * 3 * ptCnt);
+        std::vector<double> ptVec = sim::getPointCloudPoints(in->pointCloudHandle);
+        int ptCnt = ptVec.size() / 3;
+        double *ptArray = ptVec.data();
 
         // transform points wrt point cloud frame:
         double pclMatrix[12];
-        simGetObjectMatrix(in->pointCloudHandle, -1, &pclMatrix[0]);
+        sim::getObjectMatrix(in->pointCloudHandle, -1, &pclMatrix[0]);
         for(int i = 0; i < ptCnt; i++)
         {
-            if(simTransformVector(&pclMatrix[0], ptArray + 3 * i) == -1)
-            {
-                delete[] ptArray;
-                throw std::runtime_error("simTransformVector failed");
-            }
+            sim::transformVector(&pclMatrix[0], ptArray + 3 * i);
         }
 
         Point_collection points;
@@ -76,7 +68,8 @@ public:
         reconstruct.increase_scale(in->iterations, smoother);
         reconstruct.reconstruct_surface(mesher);
         int triCount = reconstruct.number_of_facets();
-        int *idxArray = new int[triCount*3];
+        std::vector<int> idxVec(triCount * 3, 0);
+        int *idxArray = idxVec.data();
         int idxCnt = 0;
         for(Facet_const_iterator it = reconstruct.facets_begin(); it != reconstruct.facets_end(); ++it)
         {
@@ -92,9 +85,7 @@ public:
             idxArray[idxCnt++] = facet.at(2);
         }
         sim::addLog(sim_verbosity_debug, "Generated shape from %d points %d indices", ptCnt, idxCnt);
-        out->shapeHandle = idxCnt > 0 ? simCreateMeshShape(0, 1.2, ptArray, 3 * ptCnt, idxArray, idxCnt, 0) : -1;
-        delete[] ptArray;
-        delete[] idxArray;
+        out->shapeHandle = idxCnt > 0 ? sim::createMeshShape(0, 1.2, ptArray, 3 * ptCnt, idxArray, idxCnt) : -1;
     }
 };
 
