@@ -6,8 +6,8 @@
 2. Install CGAL 4.11
 3. Checkout, compile and install into CoppeliaSim:
 ```sh
-$ git clone https://github.com/CoppeliaRobotics/simExtSurfRec.git
-$ cd simExtSurfRec
+$ git clone https://github.com/CoppeliaRobotics/simSurfRec.git
+$ cd simSurfRec
 $ git checkout coppeliasim-v4.5.0-rev0
 $ mkdir -p build && cd build
 $ cmake -DCMAKE_BUILD_TYPE=Release ..
