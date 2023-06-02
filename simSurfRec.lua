@@ -1,5 +1,5 @@
-local simSurfRec=loadPlugin'simSurfRec'
+local simSurfRec=loadPlugin'simSurfRec';
 
-(require'simSurfRec-typecheck')(simSurfRec)
+;(require'simSurfRec-typecheck')(simSurfRec)
 
 return simSurfRec
