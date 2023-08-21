@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.16.3)
 project(simSurfRec)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -33,4 +33,4 @@ coppeliasim_generate_stubs(${CMAKE_CURRENT_BINARY_DIR}/generated XML_FILE ${CMAK
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
 coppeliasim_add_plugin(simSurfRec SOURCES plugin.cpp)
-target_link_libraries(simSurfRec ${CGAL_CORE_LIBRARY})
+target_link_libraries(simSurfRec PRIVATE ${CGAL_CORE_LIBRARY})
