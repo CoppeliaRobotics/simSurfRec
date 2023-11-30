@@ -29,4 +29,4 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sourceCode/config.h.in ${CMAKE_CURREN
 coppeliasim_add_plugin(simSurfRec SOURCES sourceCode/plugin.cpp)
 target_link_libraries(simSurfRec PRIVATE ${CGAL_CORE_LIBRARY})
 
-coppeliasim_add_addon("addOns/simAddOnSurface reconstruction.lua")
+coppeliasim_add_addon("addOns/Surface reconstruction.lua")
