@@ -20,19 +20,13 @@ find_package(CGAL REQUIRED COMPONENTS Core)
 include(${CGAL_USE_FILE})
 include(CGAL_CreateSingleSourceCGALProgram)
 
-#find_package(PCL 1.8 REQUIRED COMPONENTS common io surface)
-#include_directories(${PCL_INCLUDE_DIRS})
-#link_directories(${PCL_LIBRARY_DIRS})
-#add_definitions(${PCL_DEFINITIONS})
-
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external)
 
-coppeliasim_generate_stubs(${CMAKE_CURRENT_BINARY_DIR}/generated XML_FILE ${CMAKE_CURRENT_SOURCE_DIR}/callbacks.xml LUA_FILE ${CMAKE_CURRENT_SOURCE_DIR}/simSurfRec.lua)
+coppeliasim_generate_stubs(${CMAKE_CURRENT_BINARY_DIR}/generated XML_FILE ${CMAKE_CURRENT_SOURCE_DIR}/sourceCode/callbacks.xml LUA_FILE ${CMAKE_CURRENT_SOURCE_DIR}/lua/simSurfRec.lua)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sourceCode/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
-coppeliasim_add_plugin(simSurfRec SOURCES plugin.cpp)
+coppeliasim_add_plugin(simSurfRec SOURCES sourceCode/plugin.cpp)
 target_link_libraries(simSurfRec PRIVATE ${CGAL_CORE_LIBRARY})
 
-coppeliasim_add_addon("simAddOnSurface reconstruction.lua")
+coppeliasim_add_addon("addOns/simAddOnSurface reconstruction.lua")
