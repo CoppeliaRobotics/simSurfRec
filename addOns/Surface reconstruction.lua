@@ -68,8 +68,8 @@ function hideDlg()
 end
 
 function reconstruct_callback()
-    local s = sim.getObjectSelection()
-    if s and #s >= 1 then
+    local s = sim.getObjectSel()
+    if #s >= 1 then
         local pc = s[#s]
         if sim.getObjectType(pc) == sim.object_pointcloud_type then
             if #sim.getPointCloudPoints(pc) > 2 then
