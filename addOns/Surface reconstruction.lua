@@ -73,8 +73,8 @@ function reconstruct_callback()
         local pc = s[#s]
         if sim.getObjectType(pc) == sim.object_pointcloud_type then
             if #sim.getPointCloudPoints(pc) > 2 then
-                if sim.msgbox_return_yes == sim.msgBox(
-                    sim.msgbox_type_question, sim.msgbox_buttons_yesno, "Surface Reconstruction",
+                if simUI.msgbox_result.yes == simUI.msgBox(
+                    simUI.msgbox_type.question, simUI.msgbox_buttons.yesno, "Surface Reconstruction",
                     "This might take several seconds/minutes. Do you want to proceed?"
                 ) then
                     local shapeHandle = simSurfRec.reconstruct_scale_space(pc, 4, 12, 300, 0.001)
