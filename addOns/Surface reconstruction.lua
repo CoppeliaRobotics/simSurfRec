@@ -22,7 +22,7 @@ end
 
 function sysCall_selChange(inData)
     local s = inData.sel
-    if #s == 1 and sim.getObjectType(s[1]) == sim.object_pointcloud_type then
+    if #s == 1 and sim.getObjectType(s[1]) == sim.sceneobject_pointcloud then
         showDlg()
     else
         hideDlg()
@@ -71,7 +71,7 @@ function reconstruct_callback()
     local s = sim.getObjectSel()
     if #s >= 1 then
         local pc = s[#s]
-        if sim.getObjectType(pc) == sim.object_pointcloud_type then
+        if sim.getObjectType(pc) == sim.sceneobject_pointcloud then
             if #sim.getPointCloudPoints(pc) > 2 then
                 if simUI.msgbox_result.yes == simUI.msgBox(
                     simUI.msgbox_type.question, simUI.msgbox_buttons.yesno, "Surface Reconstruction",
