@@ -3,7 +3,7 @@
 ### Compiling
 
 1. Install required packages for simStubsGen: see simStubsGen's [README](https://github.com/CoppeliaRobotics/include/blob/master/simStubsGen/README.md)
-2. Install CGAL 4.11
+2. Install CGAL 6.x
 3. Checkout, compile and install into CoppeliaSim:
 ```sh
 $ git clone https://github.com/CoppeliaRobotics/simSurfRec.git
