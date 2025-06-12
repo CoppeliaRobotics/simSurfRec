@@ -1,4 +1,6 @@
-sim = require 'sim'
+local sim = require 'sim'
+local simUI
+local simSurfRec
 
 function sysCall_info()
     return {autoStart = false, menu = 'Geometry / Mesh\nSurface reconstruction'}
