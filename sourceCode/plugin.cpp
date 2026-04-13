@@ -7,7 +7,7 @@
 #include <vector>
 #include <map>
 
-#include <simPlusPlus/Plugin.h>
+#include <simPlusPlus-2/Plugin.h>
 #include "config.h"
 #include "plugin.h"
 #include "stubs.h"
