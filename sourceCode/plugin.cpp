@@ -34,9 +34,6 @@ public:
     {
         if(!registerScriptStuff())
             throw std::runtime_error("failed to register script stuff");
-
-        setExtVersion("Surface Reconstruction Plugin");
-        setBuildDate(BUILD_DATE);
     }
 
     void reconstruct_scale_space(reconstruct_scale_space_in *in, reconstruct_scale_space_out *out)
